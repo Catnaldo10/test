@@ -95,7 +95,7 @@ $timer.Add_Tick({
     $remaining = $deadline - (Get-Date)
     if ($remaining.TotalSeconds -le 0) {
         $timer.Stop()
-        Break-Windows
+        $countdownLabel.Text = "ENJOY"
     }
     $countdownLabel.Text = "⏳ Time left: " + $remaining.ToString("hh\:mm\:ss")
 })
