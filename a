@@ -17,7 +17,7 @@ $form.StartPosition = "CenterScreen"
 
 # ========== MAIN LABEL ==========
 $mainLabel = New-Object System.Windows.Forms.Label
-$mainLabel.Text = "🔒 PC Locked"
+$mainLabel.Text = "PC Locked by bensgaming"
 $mainLabel.Font = New-Object System.Drawing.Font("Segoe UI", 48, [System.Drawing.FontStyle]::Bold)
 $mainLabel.ForeColor = "Red"
 $mainLabel.AutoSize = $true
