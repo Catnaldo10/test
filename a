@@ -97,7 +97,7 @@ $timer.Add_Tick({
         $timer.Stop()
         $countdownLabel.Text = "ENJOY"
     }
-    $countdownLabel.Text = "⏳ Time left: " + $remaining.ToString("hh\:mm\:ss")
+    $countdownLabel.Text = "Time left: " + $remaining.ToString("hh\:mm\:ss")
 })
 $timer.Start()
 
